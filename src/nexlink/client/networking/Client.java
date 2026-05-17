@@ -1,4 +1,5 @@
 package nexlink.client.networking;
+
 /**
  *
  * @author ALI
@@ -23,57 +24,75 @@ public class Client {
 
         try {
             //trys connection to port 1234 at localhost
-            
-            socket= new  Socket("localhost", 1919);
-            
+
+            socket = new Socket("localhost", 1919);
+
             // char "inputStreamReader" <---- byteData"socket.getInputStream()" <---- network
             inputStreamReader = new InputStreamReader(socket.getInputStream());
-            
+
             // chars "outputStreamWriter" ----> byteData"socket.getOutputStream()" ----> network
             outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
-            
-            
+
             //chars "bufferedReader" first stored in buffer <--- char "inputStreamReader"
             bufferedReader = new BufferedReader(inputStreamReader);
-            
+
             //char "bufferedReader" first stored in buffer ---> chars "outputStreamWriter"
-            bufferedWriter= new BufferedWriter(outputStreamWriter);
-            
-            Scanner scanner= new Scanner(System.in);
-            
-            while(true){
-                String messageToSend=scanner.nextLine();
-                
-                
-                bufferedWriter.write("Client"+messageToSend );
+            bufferedWriter = new BufferedWriter(outputStreamWriter);
+
+            Scanner scanner = new Scanner(System.in);
+
+                // After connecting, send sender name first:
+            scanner = new Scanner(System.in);
+
+            System.out.print("Enter your name: ");
+            String senderName = scanner.nextLine();
+            bufferedWriter.write(senderName);
+            bufferedWriter.newLine();
+            bufferedWriter.flush();
+
+                // Then send receiver name:
+            System.out.print("Enter receiver name: ");
+            String receiverName = scanner.nextLine();
+            bufferedWriter.write(receiverName);
+            bufferedWriter.newLine();
+            bufferedWriter.flush();
+
+                // Then start messaging loop:
+            while (true) {
+                String message = scanner.nextLine();
+                bufferedWriter.write(message);
                 bufferedWriter.newLine();
                 bufferedWriter.flush();
-                
-                System.out.println("Server: " + bufferedReader.readLine());
-                
-                if(messageToSend.equalsIgnoreCase("bye")){
-                break;
+
+                if (message.equalsIgnoreCase("bye")) {
+                    break;
                 }
-                
-                
+
+                String response = bufferedReader.readLine();
+                System.out.println("Server: " + response);
             }
-            
+
         } catch (IOException e) {
             e.printStackTrace();
-        }finally{
-            try{
-                if(socket != null)
+        } finally {
+            try {
+                if (socket != null) {
                     socket.close();
-                if(inputStreamReader!= null)
+                }
+                if (inputStreamReader != null) {
                     inputStreamReader.close();
-                if(outputStreamWriter!= null)
+                }
+                if (outputStreamWriter != null) {
                     outputStreamWriter.close();
-                if(bufferedReader!= null)
+                }
+                if (bufferedReader != null) {
                     bufferedReader.close();
-                if(bufferedWriter!= null)
-                    bufferedWriter.close();                    
-            }catch(IOException e){
-            e.printStackTrace();
+                }
+                if (bufferedWriter != null) {
+                    bufferedWriter.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 
