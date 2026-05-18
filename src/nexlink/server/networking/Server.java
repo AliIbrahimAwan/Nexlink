@@ -6,9 +6,11 @@ package nexlink.server.networking;
 import java.net.Socket;
 import java.net.ServerSocket;
 import java.io.IOException;
-
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Server {
+    
+    public static ConcurrentHashMap<String, ClientHandler> activeClients = new ConcurrentHashMap<>();
     public static void main(String[] args){
         
         ServerSocket serverSocket= null;
