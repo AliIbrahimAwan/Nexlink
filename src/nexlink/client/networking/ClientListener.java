@@ -1,7 +1,5 @@
 package nexlink.client.networking;
 
-import java.net.Socket;
-import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.io.IOException;
 
@@ -11,35 +9,26 @@ import java.io.IOException;
  */
 public class ClientListener implements Runnable {
 
-    Socket socket = null;
-    InputStreamReader inputStreamReader = null;
-    BufferedReader bufferedReader = null;
-
-    ClientListener(Socket socket) {
-        this.socket = socket;
+    BufferedReader bufferedReader;
+    // Change Socket to BufferedReader:
+    ClientListener(BufferedReader bufferedReader) {
+        this.bufferedReader = bufferedReader;
     }
 
     @Override
     public void run() {
         try {
-            bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            
             while (true) {
                 String incomingMessage = bufferedReader.readLine();
-                
-                if(socket ==null){
-                    System.out.println("The server has been stopped.");
+                if (incomingMessage == null) {
+                    System.out.println("Server disconnected.");
                     break;
                 }
-                System.out.println("\n" +incomingMessage);
+                System.out.println("\n" + incomingMessage);
             }
-        }catch (IOException e) {
+        } catch (IOException e) {
             System.out.println("Connection closed.");
-        } finally {
-            try {
-                if (socket != null && !socket.isClosed()) socket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 }

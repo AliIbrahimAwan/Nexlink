@@ -1,8 +1,10 @@
-
 package nexlink.server.networking;
 
 import nexlink.server.db.MessagesDAO;
 import nexlink.server.models.Message;
+import nexlink.server.models.User;
+import nexlink.server.db.UserDAO;
+
 import java.net.Socket;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -15,15 +17,12 @@ public class ClientHandler implements Runnable {
     Socket socket;
     String senderName;
     String receiverName;
-    
-    // 1. Elevate this to an instance variable so other threads can use it to route text here
-    BufferedWriter bufferedWriter; 
-
+    BufferedWriter bufferedWriter;
+    User user=null;
     public ClientHandler(Socket socket) {
         this.socket = socket;
     }
 
-    // 2. Add a helper method that allows external ClientHandlers to drop data down this stream
     public void receiveForwardedMessage(String messageText) {
         try {
             if (bufferedWriter != null) {
@@ -40,24 +39,81 @@ public class ClientHandler implements Runnable {
     public void run() {
         try {
             BufferedReader bufferedReader = new BufferedReader(
-                new InputStreamReader(socket.getInputStream()));
-            
-            // Initialized here using our instance variable field
-            this.bufferedWriter = new BufferedWriter(
-                new OutputStreamWriter(socket.getOutputStream()));
+                    new InputStreamReader(socket.getInputStream()));
 
-            // Step 1 — get sender name
-            senderName = bufferedReader.readLine();
+            this.bufferedWriter = new BufferedWriter(
+                    new OutputStreamWriter(socket.getOutputStream()));
+
+            UserDAO userDAO = new UserDAO();
+            while(true){
+            // Step 1 — get option from client
+            String option = bufferedReader.readLine();
+            int optionInt = Integer.parseInt(option);
+
+            if (optionInt == 1) {
+                // LOGIN LOOP
+                while (true) {
+                    senderName = bufferedReader.readLine();
+                    String senderPassword = bufferedReader.readLine();
+
+                    user = userDAO.loginUser(senderName, senderPassword);
+
+                    if (user != null) {
+                        bufferedWriter.write("11");
+                        bufferedWriter.newLine();
+                        bufferedWriter.flush();
+                        break;
+                    } else {
+                        bufferedWriter.write("incorrect password");
+                        bufferedWriter.newLine();
+                        bufferedWriter.flush();
+                    }
+                }
+                if(user != null){
+                break;
+                }
+            } else if (optionInt == 2) {
+                // REGISTER
+                senderName = bufferedReader.readLine();
+                String senderPassword = bufferedReader.readLine();
+
+                boolean success = userDAO.registerUser(senderName, senderPassword);
+
+                if (success) {
+                    String sucessString= "1";
+                    bufferedWriter.write(sucessString);
+                    bufferedWriter.newLine();
+                    bufferedWriter.flush();
+                } else {
+                    bufferedWriter.write("username taken");
+                    bufferedWriter.newLine();
+                    bufferedWriter.flush();
+                    socket.close();
+                    return;
+                }
+                }
+            if(optionInt==2){
+            continue;
+            }
+            }
+
+            // Step 2 — register client in active map
             System.out.println(senderName + " connected!");
-            
-            // REGISTRY GATE: Log this live connection into the Server's map immediately
             Server.activeClients.put(senderName, this);
 
-            // Step 2 — get receiver name
+            // Step 3 — get receiver name
             receiverName = bufferedReader.readLine();
             System.out.println(senderName + " wants to chat with " + receiverName);
 
-            // Step 3 — message loop
+            // Step 4 — check receiver exists
+            if (!userDAO.userExists(receiverName)) {
+                receiveForwardedMessage("System: User " + receiverName + " does not exist.");
+                socket.close();
+                return;
+            }
+
+            // Step 5 — message loop
+            MessagesDAO messageDAO = new MessagesDAO();
             while (true) {
                 String messageText = bufferedReader.readLine();
 
@@ -68,22 +124,15 @@ public class ClientHandler implements Runnable {
 
                 System.out.println(senderName + " → " + receiverName + ": " + messageText);
 
-                // Step 4 — create Message object
+                // save to DB
                 Message msg = new Message(senderName, receiverName, messageText);
-
-                // Step 5 — save to DB
-                MessagesDAO messageDAO = new MessagesDAO();
                 messageDAO.saveMessage(msg);
 
-                // Step 6 — TARGETED ROUTING LOGIC
-                // Look up if the targeted receiver is currently online in the Server map
+                // route to receiver
                 ClientHandler targetHandler = Server.activeClients.get(receiverName);
-                
                 if (targetHandler != null) {
-                    // Send the message directly to the recipient's thread terminal stream!
                     targetHandler.receiveForwardedMessage(senderName + ": " + messageText);
                 } else {
-                    // If they are not in the Map, they are offline. Notify the sender.
                     receiveForwardedMessage("System: " + receiverName + " is offline. Message saved to DB.");
                 }
             }
