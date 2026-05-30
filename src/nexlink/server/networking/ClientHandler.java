@@ -11,14 +11,16 @@ import java.io.OutputStreamWriter;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.util.List;
 
 public class ClientHandler implements Runnable {
 
     Socket socket;
     String senderName;
-    String receiverName;
     BufferedWriter bufferedWriter;
-    User user=null;
+    User user = null;
+    UserDAO userDAO = null;
+
     public ClientHandler(Socket socket) {
         this.socket = socket;
     }
@@ -40,103 +42,169 @@ public class ClientHandler implements Runnable {
         try {
             BufferedReader bufferedReader = new BufferedReader(
                     new InputStreamReader(socket.getInputStream()));
-
             this.bufferedWriter = new BufferedWriter(
                     new OutputStreamWriter(socket.getOutputStream()));
 
-            UserDAO userDAO = new UserDAO();
-            while(true){
-            // Step 1 — get option from client
-            String option = bufferedReader.readLine();
-            int optionInt = Integer.parseInt(option);
+            userDAO = new UserDAO();
+            int currentOption = 1;
 
-            if (optionInt == 1) {
-                // LOGIN LOOP
-                while (true) {
-                    senderName = bufferedReader.readLine();
-                    String senderPassword = bufferedReader.readLine();
+            // AUTH LOOP
+            while (true) {
 
-                    user = userDAO.loginUser(senderName, senderPassword);
+                if (currentOption == 1) {
+                    // LOGIN
+                    while (true) {
+                        String input = bufferedReader.readLine();
+                        if (input == null) {
+                            return;
+                        }
+
+                        if (input.equals("SWITCH_TO_REGISTER")) {
+                            currentOption = 2;
+                            break;
+                        }
+
+                        // login attempt
+                        senderName = input;
+
+                        String senderPassword = bufferedReader.readLine();
+
+                        user = userDAO.loginUser(senderName, senderPassword);
+
+                        if (user != null) {
+                            bufferedWriter.write("11");
+                            bufferedWriter.newLine();
+                            bufferedWriter.flush();
+
+                            Server.activeClients.put(senderName, this);
+
+                            System.out.println(senderName + " has officially logged in.");
+                            this.sendLiveUserList();
+                            Server.broadcastUserListUpdate();
+
+                            break;
+                        } else {
+                            bufferedWriter.write("incorrect password");
+                            bufferedWriter.newLine();
+                            bufferedWriter.flush();
+                        }
+                    }
 
                     if (user != null) {
-                        bufferedWriter.write("11");
-                        bufferedWriter.newLine();
-                        bufferedWriter.flush();
-                        break;
-                    } else {
-                        bufferedWriter.write("incorrect password");
-                        bufferedWriter.newLine();
-                        bufferedWriter.flush();
+                        break; // login successful — exit auth loop
+                    }
+                } // FIXED: Using else if so option switching resets the master loop step cleanly
+                else if (currentOption == 2) {
+                    // REGISTER
+                    while (true) {
+                        String regStatus = bufferedReader.readLine();
+                        if (regStatus == null) {
+                            return;
+                        }
+
+                        if (regStatus.equals("START_REGISTRATION")) {
+                            senderName = bufferedReader.readLine();
+                            String senderPassword = bufferedReader.readLine();
+
+                            boolean success = userDAO.registerUser(senderName, senderPassword);
+
+                            if (success) {
+                                bufferedWriter.write("1");
+                                bufferedWriter.newLine();
+                                bufferedWriter.flush();
+                                currentOption = 1; // go back to login
+                                break;
+                            } else {
+                                bufferedWriter.write("username taken");
+                                bufferedWriter.newLine();
+                                bufferedWriter.flush();
+                            }
+                        } // Catches menu synchronization reset tokens
+                        else if (regStatus.equals("1")) {
+                            currentOption = 1;
+                            break;
+                        }
                     }
                 }
-                if(user != null){
-                break;
-                }
-            } else if (optionInt == 2) {
-                // REGISTER
-                senderName = bufferedReader.readLine();
-                String senderPassword = bufferedReader.readLine();
-
-                boolean success = userDAO.registerUser(senderName, senderPassword);
-
-                if (success) {
-                    String sucessString= "1";
-                    bufferedWriter.write(sucessString);
-                    bufferedWriter.newLine();
-                    bufferedWriter.flush();
-                } else {
-                    bufferedWriter.write("username taken");
-                    bufferedWriter.newLine();
-                    bufferedWriter.flush();
-                    socket.close();
-                    return;
-                }
-                }
-            if(optionInt==2){
-            continue;
-            }
             }
 
-            // Step 2 — register client in active map
-            System.out.println(senderName + " connected!");
-            Server.activeClients.put(senderName, this);
-
-            // Step 3 — get receiver name
-            receiverName = bufferedReader.readLine();
-            System.out.println(senderName + " wants to chat with " + receiverName);
-
-            // Step 4 — check receiver exists
-            if (!userDAO.userExists(receiverName)) {
-                receiveForwardedMessage("System: User " + receiverName + " does not exist.");
-                socket.close();
-                return;
-            }
-
-            // Step 5 — message loop
-            MessagesDAO messageDAO = new MessagesDAO();
+            // CHAT PHASE
             while (true) {
-                String messageText = bufferedReader.readLine();
+                MessagesDAO messagesDAO = new MessagesDAO();
 
-                if (messageText == null || messageText.equalsIgnoreCase("bye")) {
-                    System.out.println(senderName + " disconnected.");
+                // 💡 Read from the socket ONLY ONCE at the start of the loop
+                String incomingRequest = bufferedReader.readLine();
+
+                // If the client cleanly disconnected or dropped, exit the loop
+                if (incomingRequest == null) {
                     break;
                 }
 
-                System.out.println(senderName + " → " + receiverName + ": " + messageText);
-
-                // save to DB
-                Message msg = new Message(senderName, receiverName, messageText);
-                messageDAO.saveMessage(msg);
-
-                // route to receiver
-                ClientHandler targetHandler = Server.activeClients.get(receiverName);
-                if (targetHandler != null) {
-                    targetHandler.receiveForwardedMessage(senderName + ": " + messageText);
-                } else {
-                    receiveForwardedMessage("System: " + receiverName + " is offline. Message saved to DB.");
+                // ---------------- PROTOCOL 1: User List Request ----------------
+                if (incomingRequest.equals("REQ_USER_LIST")) {
+                    sendLiveUserList();
+                    continue;
                 }
-            }
 
+                // ---------------- PROTOCOL 2: Chat History Request ----------------
+                if (incomingRequest.startsWith("REQ_HISTORY|")) {
+                    String[] tokens = incomingRequest.split("\\|", 2);
+
+                    if (tokens.length == 2) {
+                        String targetReceiver = tokens[1];
+                        System.out.println("⏳ Fetching history between [" + this.senderName + "] and [" + targetReceiver + "]");
+
+                        List<String> chatHistory = messagesDAO.getChatHistory(this.senderName, targetReceiver);
+
+                        if (chatHistory == null || chatHistory.isEmpty()) {
+                            bufferedWriter.write("LOAD_HISTORY|EMPTY");
+                            bufferedWriter.newLine();
+                            bufferedWriter.flush();
+                            System.out.println("ℹ️ No previous history found. Sent EMPTY signal.");
+                        } else {
+                            StringBuilder historyPacket = new StringBuilder("LOAD_HISTORY|");
+                            for (int i = 0; i < chatHistory.size(); i++) {
+                                historyPacket.append(chatHistory.get(i));
+                                if (i < chatHistory.size() - 1) {
+                                    historyPacket.append("[MSG_SEP]");
+                                }
+                            }
+                            bufferedWriter.write(historyPacket.toString());
+                            bufferedWriter.newLine();
+                            bufferedWriter.flush();
+
+                            System.out.println("✅ Sent " + chatHistory.size() + " historical messages to [" + this.senderName + "]");
+                        }
+                    }
+                    continue; // Pass smoothly to the next loop cycle
+                }
+
+                // ---------------- PROTOCOL 3: Targeted Chat Messaging ----------------
+                if (incomingRequest.startsWith("MSG|")) {
+                    System.out.println("entered if 2");
+
+                    String[] tokens = incomingRequest.split("\\|", 3);
+
+                    if (tokens.length == 3) {
+                        String targetReceiver = tokens[1];
+                        String textMessage = tokens[2];
+
+                        System.out.println(textMessage + " to " + targetReceiver);
+
+                        ClientHandler recipientHandler = Server.activeClients.get(targetReceiver);
+                        Message message = new Message(senderName, targetReceiver, textMessage);
+                        messagesDAO.saveMessage(message);
+
+                        if (recipientHandler != null) {
+                            recipientHandler.receiveForwardedMessage("INCOMING_MSG|" + senderName + "|" + textMessage);
+                        } else {
+                            this.receiveForwardedMessage("INCOMING_MSG|System|" + targetReceiver + " is currently offline.");
+                        }
+                    }
+                    continue;
+                }
+
+            }
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -144,10 +212,37 @@ public class ClientHandler implements Runnable {
                 Server.activeClients.remove(senderName);
             }
             try {
-                if (socket != null) socket.close();
+                if (socket != null) {
+                    socket.close();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public void sendLiveUserList() {
+        try {
+            // 1. Get all usernames from the database once
+            List<String> users = userDAO.getAllUsernames();
+            StringBuilder sb = new StringBuilder("USER_LIST|");
+
+            for (String name : users) {
+                // Don't show the user themselves in their own sidebar list
+                if (!name.equals(this.senderName)) {
+                    // 2. Check the memory HashMap instead of the database for live status!
+                    String status = Server.activeClients.containsKey(name) ? "(online)" : "(offline)";
+
+                    // 3. Format: USER_LIST|Wardan (online),Zain (offline),
+                    sb.append(name).append(" ").append(status).append(",");
+                }
+            }
+
+            // Send the compiled string back over the stream
+            receiveForwardedMessage(sb.toString());
+
+        } catch (Exception e) {
+            System.out.println("Error compiling user list: " + e.getMessage());
         }
     }
 }

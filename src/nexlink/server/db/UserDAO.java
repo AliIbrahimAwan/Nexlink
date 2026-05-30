@@ -1,16 +1,16 @@
-
 package nexlink.server.db;
 
 /**
  *
  * @author ALI
  */
-
 import nexlink.server.models.User;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserDAO {
 
@@ -42,7 +42,7 @@ public class UserDAO {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                return new User(rs.getInt("id"),rs.getString("username"),rs.getString("password"),rs.getString("status"));
+                return new User(rs.getInt("id"), rs.getString("username"), rs.getString("password"), rs.getString("status"));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -77,5 +77,24 @@ public class UserDAO {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public List<String> getAllUsernames() {
+        List<String> usernames = new ArrayList<>();
+        String sql = "SELECT username FROM users";
+
+        try {
+            Connection conn = DatabaseManager.getInstance().getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                usernames.add(rs.getString("username"));
+            }
+            rs.close();
+            ps.close();
+        } catch (SQLException e) {
+            System.out.println("Database Error in getAllUsernames: " + e.getMessage());
+        }
+        return usernames;
     }
 }

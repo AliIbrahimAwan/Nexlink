@@ -1,18 +1,21 @@
 package nexlink.client.networking;
 
 import java.net.Socket;
-import java.util.Scanner;
 import java.io.OutputStreamWriter;
 import java.io.BufferedWriter;
 import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Scanner;
+import nexlink.client.auth.LoginScreenLogic;
 import nexlink.client.auth.LoginScreen;
+import nexlink.client.auth.RegisterScreenLogic;
 import nexlink.client.auth.RegisterScreen;
+import nexlink.client.gui.ChatWindow;
 
 public class Client {
 
-    public static void main() {
+    public static void main(String[] args) {
 
         Socket socket = null;
         OutputStreamWriter outputStreamWriter = null;
@@ -24,98 +27,165 @@ public class Client {
 
             outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
             bufferedWriter = new BufferedWriter(outputStreamWriter);
-            bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            bufferedReader = new BufferedReader(
+                    new InputStreamReader(socket.getInputStream()));
 
-            // pass bufferedReader to ClientListener — shared, no conflict
-            Scanner scanner = new Scanner(System.in);
+            // create logic bridge
+            LoginScreenLogic loginLogic = new LoginScreenLogic();
+
+            // show login screen
+            final LoginScreen loginScreenRef[] = new LoginScreen[1];
+            java.awt.EventQueue.invokeLater(() -> {
+                loginScreenRef[0] = new LoginScreen(loginLogic);
+                loginScreenRef[0].setVisible(true);
+            });
+
             String userName = null;
-            boolean authenticated = false;
-            
-            while (!authenticated) {
-                System.out.println("Enter 1 for Login, 2 for Registration:");
-                int option = scanner.nextInt();
-                scanner.nextLine(); // consume leftover newline
+            int currentOption = 1;
 
-                bufferedWriter.write(String.valueOf(option));
-                bufferedWriter.newLine();
-                bufferedWriter.flush();
+            outerLoop:
+            while (true) {
 
-                if (option == 1) {
+                if (currentOption == 1) {
                     // LOGIN LOOP
                     while (true) {
-                        LoginScreen loginScreen = new LoginScreen();
-                        loginScreen.getLoginInfo();
-                        userName = loginScreen.getUsername();
-                        String password = loginScreen.getPassword();
+                        // wait for GUI button click
+                        synchronized (loginLogic.lock) {
+                            loginLogic.lock.wait();
+                        }
 
-                        bufferedWriter.write(userName);
+                        // register button clicked
+                        if (loginLogic.isRegisterTriggered) {
+                            loginLogic.isRegisterTriggered = false;
+                            currentOption = 2;
+
+                            // tell server switching to register
+                            bufferedWriter.write("SWITCH_TO_REGISTER");
+                            bufferedWriter.newLine();
+                            bufferedWriter.flush();
+                            break; // Drops to the outerLoop to switch to option 2
+                        }
+
+                        // login attempt
+                        bufferedWriter.write(loginLogic.getUsername());
                         bufferedWriter.newLine();
                         bufferedWriter.flush();
 
-                        bufferedWriter.write(password);
+                        bufferedWriter.write(loginLogic.getPassword());
                         bufferedWriter.newLine();
                         bufferedWriter.flush();
 
                         String check = bufferedReader.readLine();
 
                         if (check.equals("11")) {
+                            userName = loginLogic.getUsername();
                             System.out.println("Login successful! Welcome " + userName);
-                            
-                            authenticated = true;
-                            break;
+                            loginLogic.isAuthenticated = true;
+
+                            // close login screen
+                            if (loginScreenRef[0] != null) {
+                                loginScreenRef[0].dispose();
+                            }
+
+                            break outerLoop;
+                        } else {
+                            System.out.println("Incorrect credentials!");
                         }
-                        else{System.out.println("Incorrect credentials, try again!");
-                        };
                     }
+                }
 
-                } else if (option == 2) {
+                if (currentOption == 2) {
                     // REGISTER
-                    RegisterScreen registerScreen = new RegisterScreen();
-                    registerScreen.getLoginInfo();
-                    userName = registerScreen.getUsername();
-                    String password = registerScreen.getPassword();
+                    RegisterScreenLogic registerLogic = new RegisterScreenLogic();
 
-                    bufferedWriter.write(userName);
-                    bufferedWriter.newLine();
-                    bufferedWriter.flush();
+                    final RegisterScreen[] registerScreenRef = new RegisterScreen[1];
+                    java.awt.EventQueue.invokeLater(() -> {
+                        registerScreenRef[0] = new RegisterScreen(registerLogic);
+                        registerScreenRef[0].setVisible(true);
+                    });
 
-                    bufferedWriter.write(password);
-                    bufferedWriter.newLine();
-                    bufferedWriter.flush();
+                    while (true) {
+                        // wait for GUI button click
+                        synchronized (registerLogic.lock) {
+                            registerLogic.lock.wait();
+                        }
 
-                    String response = bufferedReader.readLine();
-                    if (response.equalsIgnoreCase("1")) {
-                        System.out.println("Registration successful! Please login.");
-                    } else {
-                        System.out.println("Username already taken. Try again.");
+                        bufferedWriter.write("START_REGISTRATION");
+                        bufferedWriter.newLine();
+                        bufferedWriter.flush();
+
+                        bufferedWriter.write(registerLogic.getUsername());
+                        bufferedWriter.newLine();
+                        bufferedWriter.flush();
+
+                        bufferedWriter.write(registerLogic.getPassword());
+                        bufferedWriter.newLine();
+                        bufferedWriter.flush();
+
+                        String response = bufferedReader.readLine();
+
+                        if (response.equals("1")) {
+                            System.out.println("Registration successful! Please login.");
+                            registerLogic.isRegistered = true;
+                            currentOption = 1;
+
+                            // Disposes the registration window completely
+                            if (registerScreenRef[0] != null) {
+                                registerScreenRef[0].dispose();
+                            }
+
+                            bufferedWriter.write("1");
+                            bufferedWriter.newLine();
+                            bufferedWriter.flush();
+
+                            // show login screen again
+                            java.awt.EventQueue.invokeLater(() -> {
+                                loginLogic.isRegisterTriggered = false;
+                                if (loginScreenRef[0] != null) {
+                                    loginScreenRef[0].dispose(); // Clear old login references if any
+                                }
+                                loginScreenRef[0] = new LoginScreen(loginLogic);
+                                loginScreenRef[0].setVisible(true);
+                            });
+
+                            // FIXED: Clear execution completely out of the authentication state machine
+                            // This ensures variables re-evaluate perfectly without data leakage.
+                            continue outerLoop;
+                        } else {
+                            System.out.println("Username taken. Try again.");
+                        }
                     }
                 }
             }
+            
+            
+            
 
-            ClientListener clientListener = new ClientListener(bufferedReader);
+            final String finalUser = userName;
+            final BufferedWriter finalWriter = bufferedWriter;
+            final BufferedReader finalReader = bufferedReader;
+
+            ChatWindow chatWindow = new ChatWindow(finalUser, finalWriter, finalReader);
+
+            // start listener now
+            ClientListener clientListener = new ClientListener(finalReader, chatWindow);
             Thread listenerThread = new Thread(clientListener);
             listenerThread.start();
+
+            //Use invokeLater ONLY to safely handle the visual display update
+            java.awt.EventQueue.invokeLater(() -> {
+
+                chatWindow.setVisible(true); // 
+            });
+
             
-            // get receiver name
-            System.out.print("Enter receiver name: ");
-            String receiverName = scanner.nextLine();
-            bufferedWriter.write(receiverName);
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
+             while (true) {
+                Thread.sleep(10000); 
+            }           
 
-            // message loop
-            while (true) {
-                String message = scanner.nextLine();
-                bufferedWriter.write(message);
-                bufferedWriter.newLine();
-                bufferedWriter.flush();
 
-                if (message.equalsIgnoreCase("bye")) {
-                    break;
-                }
-            }
 
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         } finally {
             try {

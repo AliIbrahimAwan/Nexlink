@@ -16,6 +16,7 @@ public class User {
         this.username = username;
         this.password = password;
         this.status = "offline";
+        
     }
 
     // fetch from DB
