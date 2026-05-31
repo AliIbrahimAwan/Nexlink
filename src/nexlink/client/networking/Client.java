@@ -89,7 +89,7 @@ public class Client {
 
                             break outerLoop;
                         } else {
-                            System.out.println("Incorrect credentials!");
+                            javax.swing.JOptionPane.showMessageDialog(null, "Incorrect Credentials");
                         }
                     }
                 }
@@ -125,7 +125,7 @@ public class Client {
                         String response = bufferedReader.readLine();
 
                         if (response.equals("1")) {
-                            System.out.println("Registration successful! Please login.");
+                            javax.swing.JOptionPane.showMessageDialog(null, "Registration successful! Please login.");
                             registerLogic.isRegistered = true;
                             currentOption = 1;
 
@@ -152,7 +152,7 @@ public class Client {
                             // This ensures variables re-evaluate perfectly without data leakage.
                             continue outerLoop;
                         } else {
-                            System.out.println("Username taken. Try again.");
+                            javax.swing.JOptionPane.showMessageDialog(null, "Username taken. Try again.");
                         }
                     }
                 }
@@ -165,12 +165,11 @@ public class Client {
             final BufferedWriter finalWriter = bufferedWriter;
             final BufferedReader finalReader = bufferedReader;
 
-            ChatWindow chatWindow = new ChatWindow(finalUser, finalWriter, finalReader);
+            ChatWindow chatWindow = new ChatWindow(finalUser,socket ,finalWriter, finalReader);
 
             // start listener now
-            ClientListener clientListener = new ClientListener(finalReader, chatWindow);
-            Thread listenerThread = new Thread(clientListener);
-            listenerThread.start();
+ClientListener listener = new ClientListener(socket, null, chatWindow);
+new Thread(listener).start();
 
             //Use invokeLater ONLY to safely handle the visual display update
             java.awt.EventQueue.invokeLater(() -> {

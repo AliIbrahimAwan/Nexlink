@@ -19,7 +19,19 @@ public class LoginScreen extends javax.swing.JFrame {
      * Creates new form LoginScreen
      */
     public LoginScreen(LoginScreenLogic logic) {
+        
+        
         initComponents();
+        feildUserName.setOpaque(false);
+        feildPassword.setOpaque(false);
+        feildUserName.setForeground(java.awt.Color.WHITE);
+        feildPassword.setForeground(java.awt.Color.WHITE);
+        feildUserName.setBackground(new java.awt.Color(0, 0, 0, 0));
+        feildPassword.setBackground(new java.awt.Color(0, 0, 0, 0));
+        txtDonotHaveAcc.setForeground(java.awt.Color.WHITE);
+        feildUserName.setCaretColor(java.awt.Color.WHITE);
+        feildPassword.setCaretColor(java.awt.Color.WHITE);
+
         this.loginScreenLogic = logic;
         this.setLocationRelativeTo(null);
     }
@@ -33,68 +45,73 @@ public class LoginScreen extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jLabel2 = new javax.swing.JLabel();
+        feildUserName = new javax.swing.JTextField();
         userLabel = new javax.swing.JLabel();
         passLabel = new javax.swing.JLabel();
-        feildUserName = new javax.swing.JTextField();
         feildPassword = new javax.swing.JPasswordField();
         title = new javax.swing.JLabel();
         buttonLogin = new javax.swing.JButton();
         txtDonotHaveAcc = new javax.swing.JLabel();
         buttonRegister = new javax.swing.JButton();
-        jPanel1 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(102, 102, 102));
         setMaximumSize(new java.awt.Dimension(700, 600));
         setResizable(false);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(63, 337, -1, -1));
+
+        feildUserName.setBackground(new java.awt.Color(255, 255, 255));
+        feildUserName.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        feildUserName.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
+        feildUserName.addActionListener(this::feildUserNameActionPerformed);
+        getContentPane().add(feildUserName, new org.netbeans.lib.awtextra.AbsoluteConstraints(170, 95, 270, 30));
 
         userLabel.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         userLabel.setForeground(new java.awt.Color(255, 255, 255));
         userLabel.setText("UserName");
-        getContentPane().add(userLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(19, 98, -1, -1));
+        getContentPane().add(userLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(55, 98, -1, -1));
 
         passLabel.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         passLabel.setForeground(new java.awt.Color(255, 255, 255));
         passLabel.setText("Password");
-        getContentPane().add(passLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(19, 168, -1, -1));
-
-        feildUserName.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        feildUserName.addActionListener(this::feildUserNameActionPerformed);
-        getContentPane().add(feildUserName, new org.netbeans.lib.awtextra.AbsoluteConstraints(135, 99, 166, -1));
+        getContentPane().add(passLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(55, 180, -1, 30));
 
         feildPassword.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        getContentPane().add(feildPassword, new org.netbeans.lib.awtextra.AbsoluteConstraints(135, 169, 166, -1));
+        feildPassword.setPreferredSize(new java.awt.Dimension(100, 40));
+        feildPassword.addActionListener(this::feildPasswordActionPerformed);
+        getContentPane().add(feildPassword, new org.netbeans.lib.awtextra.AbsoluteConstraints(170, 180, 270, 30));
 
         title.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
-        title.setForeground(new java.awt.Color(0, 255, 255));
-        title.setText("Login Page");
-        getContentPane().add(title, new org.netbeans.lib.awtextra.AbsoluteConstraints(145, 6, -1, -1));
+        title.setForeground(new java.awt.Color(0, 189, 189));
+        title.setText("USER LOGIN");
+        getContentPane().add(title, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 20, -1, -1));
 
         buttonLogin.setBackground(new java.awt.Color(0, 255, 255));
         buttonLogin.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         buttonLogin.setForeground(new java.awt.Color(0, 0, 0));
         buttonLogin.setText("Login");
-        buttonLogin.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        buttonLogin.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        buttonLogin.setFocusable(false);
         buttonLogin.addActionListener(this::buttonLoginActionPerformed);
-        getContentPane().add(buttonLogin, new org.netbeans.lib.awtextra.AbsoluteConstraints(246, 213, 55, -1));
+        getContentPane().add(buttonLogin, new org.netbeans.lib.awtextra.AbsoluteConstraints(170, 230, 80, 30));
 
+        txtDonotHaveAcc.setBackground(new java.awt.Color(255, 255, 255));
         txtDonotHaveAcc.setText("Do not have an Account?");
-        getContentPane().add(txtDonotHaveAcc, new org.netbeans.lib.awtextra.AbsoluteConstraints(135, 249, -1, -1));
+        getContentPane().add(txtDonotHaveAcc, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 290, -1, -1));
 
         buttonRegister.setBackground(new java.awt.Color(0, 255, 255));
         buttonRegister.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         buttonRegister.setForeground(new java.awt.Color(0, 0, 0));
         buttonRegister.setText("Register");
-        buttonRegister.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        buttonRegister.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        buttonRegister.setFocusable(false);
         buttonRegister.addActionListener(this::buttonRegisterActionPerformed);
-        getContentPane().add(buttonRegister, new org.netbeans.lib.awtextra.AbsoluteConstraints(148, 283, 108, -1));
+        getContentPane().add(buttonRegister, new org.netbeans.lib.awtextra.AbsoluteConstraints(170, 283, 110, 30));
 
-        jPanel1.setBackground(new java.awt.Color(51, 51, 51));
-        jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-        getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 450, 350));
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/nexlink/client/auth/images/background.JPG"))); // NOI18N
+        jLabel1.setToolTipText("");
+        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 580, 390));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -121,6 +138,10 @@ public class LoginScreen extends javax.swing.JFrame {
             loginScreenLogic.isRegisterTriggered = true;
         }
     }//GEN-LAST:event_buttonRegisterActionPerformed
+
+    private void feildPasswordActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_feildPasswordActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_feildPasswordActionPerformed
 
     /**
      * @param args the command line arguments
@@ -155,8 +176,7 @@ public class LoginScreen extends javax.swing.JFrame {
     private javax.swing.JButton buttonRegister;
     private javax.swing.JPasswordField feildPassword;
     private javax.swing.JTextField feildUserName;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JPanel jPanel1;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel passLabel;
     private javax.swing.JLabel title;
     private javax.swing.JLabel txtDonotHaveAcc;

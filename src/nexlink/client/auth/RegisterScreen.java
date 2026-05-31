@@ -4,7 +4,7 @@
  */
 package nexlink.client.auth;
 
-import nexlink.client.auth.RegisterScreenLogic;
+import java.awt.Color;
 /**
  *
  * @author ALI
@@ -21,8 +21,19 @@ public class RegisterScreen extends javax.swing.JFrame {
         this.registerScreenLogic= registerScreenLogic;
         
         initComponents();
-        this.setSize(400, 380);
+        txtUserName.setOpaque(false);
+        txtPassword.setOpaque(false);
+        txtUserName.setForeground(java.awt.Color.WHITE);
+        txtPassword.setForeground(java.awt.Color.WHITE);
+        txtUserName.setBackground(new java.awt.Color(0, 0, 0, 0));
+        txtPassword.setBackground(new java.awt.Color(0, 0, 0, 0));
+        txtUserName.setCaretColor(java.awt.Color.WHITE);
+        txtPassword.setCaretColor(java.awt.Color.WHITE);
+        labelUsername.setForeground(Color.WHITE);
+        labelPassword.setForeground(Color.WHITE);
+        
         this.setLocationRelativeTo(null);
+        
     }
 
     /**
@@ -35,89 +46,86 @@ public class RegisterScreen extends javax.swing.JFrame {
     private void initComponents() {
 
         jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
+        labelUsername = new javax.swing.JLabel();
+        labelPassword = new javax.swing.JLabel();
         txtUserName = new javax.swing.JTextField();
         registerButton = new javax.swing.JButton();
         txtPassword = new javax.swing.JPasswordField();
+        jLabel4 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
+        getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
-        jLabel1.setText("Register");
+        jLabel1.setForeground(new java.awt.Color(0, 189, 189));
+        jLabel1.setText("Register User");
+        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(235, 22, -1, -1));
 
-        jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel2.setText("UserName");
+        labelUsername.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        labelUsername.setText("User Name");
+        getContentPane().add(labelUsername, new org.netbeans.lib.awtextra.AbsoluteConstraints(74, 106, -1, -1));
 
-        jLabel3.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel3.setText("Password");
+        labelPassword.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        labelPassword.setText("Password");
+        getContentPane().add(labelPassword, new org.netbeans.lib.awtextra.AbsoluteConstraints(74, 217, -1, -1));
 
         txtUserName.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        txtUserName.addActionListener(this::txtUserNameActionPerformed);
+        getContentPane().add(txtUserName, new org.netbeans.lib.awtextra.AbsoluteConstraints(185, 105, 270, 30));
 
         registerButton.setBackground(new java.awt.Color(0, 204, 204));
         registerButton.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         registerButton.setForeground(new java.awt.Color(0, 0, 0));
         registerButton.setText("Register");
         registerButton.addActionListener(this::registerButtonActionPerformed);
+        getContentPane().add(registerButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(370, 289, -1, 37));
 
         txtPassword.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        txtPassword.addActionListener(this::txtPasswordActionPerformed);
+        getContentPane().add(txtPassword, new org.netbeans.lib.awtextra.AbsoluteConstraints(185, 216, 270, 30));
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(180, 180, 180)
-                .addComponent(jLabel1))
-            .addGroup(layout.createSequentialGroup()
-                .addGap(28, 28, 28)
-                .addComponent(jLabel2)
-                .addGap(26, 26, 26)
-                .addComponent(txtUserName, javax.swing.GroupLayout.PREFERRED_SIZE, 157, javax.swing.GroupLayout.PREFERRED_SIZE))
-            .addGroup(layout.createSequentialGroup()
-                .addGap(28, 28, 28)
-                .addComponent(jLabel3)
-                .addGap(32, 32, 32)
-                .addComponent(txtPassword, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE))
-            .addGroup(layout.createSequentialGroup()
-                .addGap(189, 189, 189)
-                .addComponent(registerButton))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(22, 22, 22)
-                .addComponent(jLabel1)
-                .addGap(52, 52, 52)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel2)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(1, 1, 1)
-                        .addComponent(txtUserName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(56, 56, 56)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel3)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(1, 1, 1)
-                        .addComponent(txtPassword, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(47, 47, 47)
-                .addComponent(registerButton))
-        );
+        jLabel4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/nexlink/client/auth/images/background.JPG"))); // NOI18N
+        getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 580, 390));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void registerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_registerButtonActionPerformed
         // TODO add your handling code here:
-        registerScreenLogic.setUsername(txtUserName.getText());
-        registerScreenLogic.setPassword(txtPassword.getText());
-        synchronized (registerScreenLogic.lock){
-            
+
+        String username = txtUserName.getText().trim();
+        String password = new String(txtPassword.getPassword()).trim();
+
+
+
+        if (username.length() < 3 || password.length() < 3) {
+            javax.swing.JOptionPane.showMessageDialog(
+                    this,
+                    "Username and Password must both be at least 3 characters long!",
+                    "Registration Failed",
+                    javax.swing.JOptionPane.WARNING_MESSAGE
+            );
+            return;
+
+        }
+        registerScreenLogic.setUsername(username);
+        registerScreenLogic.setPassword(password);
+
+        synchronized (registerScreenLogic.lock) {
+
             registerScreenLogic.lock.notify();
         }
-        
+
     }//GEN-LAST:event_registerButtonActionPerformed
+
+    private void txtUserNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtUserNameActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtUserNameActionPerformed
+
+    private void txtPasswordActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtPasswordActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtPasswordActionPerformed
 
     /**
      * @param args the command line arguments
@@ -150,8 +158,9 @@ public class RegisterScreen extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel labelPassword;
+    private javax.swing.JLabel labelUsername;
     private javax.swing.JButton registerButton;
     private javax.swing.JPasswordField txtPassword;
     private javax.swing.JTextField txtUserName;

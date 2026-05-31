@@ -23,7 +23,7 @@ public class UserDAO {
             ps.setString(1, username);
             ps.setString(2, password); // plain text for now
             ps.executeUpdate();
-            System.out.println("User registered: " + username);
+            javax.swing.JOptionPane.showMessageDialog(null, username+ " Registered");
             return true;
         } catch (SQLException e) {
             System.out.println("Registration failed: " + e.getMessage());

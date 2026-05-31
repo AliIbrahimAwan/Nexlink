@@ -13,7 +13,6 @@ public class MessagesDAO {
     
     // INSERT — save a new message to DB
     public void saveMessage(Message msg) {
-        System.out.println("DAO called");
         String sql = "INSERT INTO messages (sender, receiver, message_text) VALUES (?, ?, ?)";
 
         try {
@@ -25,7 +24,6 @@ public class MessagesDAO {
             ps.setString(3, msg.getMessage());
 
             ps.executeUpdate();
-            System.out.println("Message saved to DB!");
 
         } catch (SQLException e) {
             e.printStackTrace();

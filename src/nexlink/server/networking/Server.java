@@ -8,6 +8,7 @@ import java.net.Socket;
 import java.net.ServerSocket;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
+import nexlink.server.gui.ServerConsole;
 
 public class Server {
 
@@ -37,13 +38,28 @@ public class Server {
             e.printStackTrace();
             return;
         }
+        java.awt.EventQueue.invokeLater(() -> {
+        ServerConsole consoleFrame = new ServerConsole();
+        consoleFrame.setLocationRelativeTo(null); // Centers it on screen
+        consoleFrame.setVisible(true);
+    });
 
+    // Short pause to ensure Swing constructs the window UI layout tree properly
+    try { Thread.sleep(250); } catch (Exception e) {}
+
+    // 2. Start streaming core environment updates right to your window
+    ServerConsole.log("SYSTEM", "Initializing NexLink Core Instance on Port 12345...");
+    
+
+    ServerConsole.log("SYSTEM", "Ready and listening for active client cluster channels...");
+        
+        
+        
         while (true) {
             try {
                 Socket socket = serverSocket.accept();
 
-                System.out.println("The client has connected");
-
+ServerConsole.log("CONNECT", "The client has connected");
                 ClientHandler clientHandler = new ClientHandler(socket);
                 Thread thread = new Thread(clientHandler);
                 thread.start();

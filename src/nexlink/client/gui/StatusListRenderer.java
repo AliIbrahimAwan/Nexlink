@@ -22,14 +22,12 @@ public class StatusListRenderer extends DefaultListCellRenderer {
                 ImageIcon rawOnline = new ImageIcon(onlineURL);
                 Image scaledImg = rawOnline.getImage().getScaledInstance(iconSize, iconSize, Image.SCALE_SMOOTH);
                 onlineIcon = new ImageIcon(scaledImg);
-                System.out.println("✅ online.png loaded and resized!");
             }
             
             if (offlineURL != null) {
                 ImageIcon rawOffline = new ImageIcon(offlineURL);
                 Image scaledImg = rawOffline.getImage().getScaledInstance(iconSize, iconSize, Image.SCALE_SMOOTH);
                 offlineIcon = new ImageIcon(scaledImg);
-                System.out.println("✅ offline.png loaded and resized!");
             }
             
         } catch (Exception e) {
