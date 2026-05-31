@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-private xmlns="http://www.netbeans.org/ns/project-private/1">
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file:/E:/uni/OOP/project/NexLink/src/nexlink/server/networking/ClientHandler.java</file>
+            <file>file:/E:/uni/OOP/project/NexLink/src/nexlink/server/models/User.java</file>
+            <file>file:/E:/uni/OOP/project/NexLink/src/nexlink/server/models/Message.java</file>
+            <file>file:/E:/uni/OOP/project/NexLink/src/nexlink/server/models/FileModel.java</file>
+            <file>file:/E:/uni/OOP/project/NexLink/src/nexlink/client/files/FileSender.java</file>
+            <file>file:/E:/uni/OOP/project/NexLink/src/nexlink/client/gui/ChatWindow.java</file>
+            <file>file:/E:/uni/OOP/project/NexLink/src/nexlink/client/networking/Client.java</file>
+            <file>file:/E:/uni/OOP/project/NexLink/src/nexlink/client/networking/ClientListener.java</file>
+            <file>file:/E:/uni/OOP/project/NexLink/src/nexlink/server/db/DatabaseManager.java</file>
+            <file>file:/E:/uni/OOP/project/NexLink/src/nexlink/server/gui/ServerConsole.java</file>
+            <file>file:/E:/uni/OOP/project/NexLink/src/nexlink/server/networking/Server.java</file>
+        </group>
+    </open-files>
+</project-private>
